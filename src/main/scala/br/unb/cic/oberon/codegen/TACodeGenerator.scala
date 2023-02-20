@@ -45,45 +45,38 @@ object TACodeGenerator extends CodeGenerator[List[TAC]] {
         return (Name(name, expr.accept(expVisitor).get), insts)
 
       case AddExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr.accept(expVisitor).get, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ AddOp(l, r, t, ""))
 
       case SubExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr.accept(expVisitor).get, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ SubOp(l, r, t, ""))
 
       case MultExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr.accept(expVisitor).get, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ MulOp(l, r, t, ""))
 
       case DivExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr.accept(expVisitor).get, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ DivOp(l, r, t, ""))
         
       case AndExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(BooleanType)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(BooleanType, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ AndOp(l, r, t, ""))
 
       case OrExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(BooleanType)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(BooleanType, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ OrOp(l, r, t, ""))
 
       case ModExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(IntegerType)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(IntegerType, left, right, insts)
+        val (t) = temps(0)
         return (t, insts2 :+ RemOp(l, r, t, ""))
 
       case NotExpression(exp) =>
@@ -92,43 +85,33 @@ object TACodeGenerator extends CodeGenerator[List[TAC]] {
         return (t, insts1 :+ NotOp(a, t, ""))
 
       case EQExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t0 = new Temporary(expr.accept(expVisitor).get)
-        val t1 = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr, left, right, insts)
+        val (t0, t1) = (temps(0), temps(1))
         return (t1, insts2 :+ SubOp(l, r, t0, "") :+ SLTUOp(t0, Constant("1", IntegerType), t1, ""))
 
       case NEQExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t0 = new Temporary(expr.accept(expVisitor).get)
-        val t1 = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr, left, right, insts)
+        val (t0, t1) = (temps(0), temps(1))
         return (t1, insts2 :+ SubOp(l, r, t0, "") :+ SLTUOp(Constant("0", IntegerType), t0, t1, ""))
 
       case GTExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr, left, right, insts)
+        val t = temps(0)
         return (t, insts2 :+ SLTOp(r, l, t, ""))
 
       case LTExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr, left, right, insts)
+        val t = temps(0)
         return (t, insts2 :+ SLTOp(l, r, t, ""))
 
       case GTEExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t0 = new Temporary(expr.accept(expVisitor).get)
-        val t1 = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr, left, right, insts)
+        val (t0, t1) = (temps(0), temps(1))
         return (t1, insts2 :+ SLTOp(l, r, t0, "") :+ NotOp(t0, t1, ""))
 
       case LTEExpression(left, right) =>
-        val (l, insts1) = generateExpression(left, insts)
-        val (r, insts2) = generateExpression(right, insts1)
-        val t0 = new Temporary(expr.accept(expVisitor).get)
-        val t1 = new Temporary(expr.accept(expVisitor).get)
+        val (temps, l, r, insts2) = generateBinaryAndComparisonExpression(expr, left, right, insts)
+        val (t0, t1) = (temps(0), temps(1))
         return (t1, insts2 :+ SLTOp(r, l, t0, "") :+ NotOp(t0, t1, ""))
 
 //TODO generateProcedure e gerar o Map funcs
@@ -159,6 +142,25 @@ object TACodeGenerator extends CodeGenerator[List[TAC]] {
   }
 
   def generateStatement() {}
+
+  private def generateBinaryAndComparisonExpression(
+    exprType: Optional[Type], expr: Optional[Expressions],
+    left: Expression, right: Expression,
+    insts: List[TAC]
+  ): (List[Address], Address, Address, List[TAC]) {
+    val (l, insts1) = generateExpression(left, insts)
+    val (r, insts2) = generateExpression(right, insts1)
+
+    val temps = exprType match {
+      case Some(i) => List(new Temporary(i))
+      case None => expr match {
+        case GTExpression(_,_) | LTExpression(_,_) => List(new Temporary(BooleanType))
+        case other => List(new Temporary(BooleanType), new Temporary(BooleanType))
+      }
+    }
+
+    (temps, l, r, insts2)
+  }
 
   // somente para testes
   def load_vars(vars: List[VariableDeclaration], consts: List[ASTConstant] = List()): Unit = {
